@@ -1,6 +1,7 @@
 package com.j6crypto.logic.positionmgmt;
 
 import com.j6crypto.logic.PmTradeLogic;
+import com.j6crypto.service.CandlestickManager;
 import com.j6crypto.to.setup.OpenMarketPriceSetup;
 import com.j6crypto.logic.entity.state.AutoTradeOrder;
 import com.j6crypto.to.TimeData;
@@ -17,8 +18,9 @@ import java.util.function.Supplier;
  */
 public class OpenMarketPrice extends PmTradeLogic<OpenMarketPriceSetup> {
 
-  public OpenMarketPrice(AutoTradeOrder autoTradeOrder, OpenMarketPriceSetup state, Supplier<LocalDateTime> currentDateTimeSupplier) {
-    super(autoTradeOrder, state, currentDateTimeSupplier);
+  public OpenMarketPrice(AutoTradeOrder autoTradeOrder, OpenMarketPriceSetup state, Supplier<LocalDateTime> currentDateTimeSupplier,
+                         CandlestickManager candlestickManager) {
+    super(autoTradeOrder, state, currentDateTimeSupplier, candlestickManager);
   }
 
   @Override

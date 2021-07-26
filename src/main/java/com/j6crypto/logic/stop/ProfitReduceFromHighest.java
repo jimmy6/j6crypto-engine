@@ -5,6 +5,7 @@ import com.j6crypto.logic.TradeLogic;
 import com.j6crypto.logic.entity.state.AutoTradeOrder;
 import com.j6crypto.logic.entity.state.PriceReduceFromHighestState;
 import com.j6crypto.logic.entity.state.ProfitReduceFromHighestState;
+import com.j6crypto.service.CandlestickManager;
 import com.j6crypto.to.TimeData;
 import com.j6crypto.to.Trade;
 import org.slf4j.Logger;
@@ -21,8 +22,9 @@ import java.util.function.Supplier;
 public class ProfitReduceFromHighest extends StopTradeLogic<ProfitReduceFromHighestState> {
   private static Logger logger = LoggerFactory.getLogger(ProfitReduceFromHighest.class);
 
-  public ProfitReduceFromHighest(AutoTradeOrder autoTradeOrder, ProfitReduceFromHighestState state, Supplier<LocalDateTime> currentDateTimeSupplier) {
-    super(autoTradeOrder, state, currentDateTimeSupplier);
+  public ProfitReduceFromHighest(AutoTradeOrder autoTradeOrder, ProfitReduceFromHighestState state, Supplier<LocalDateTime> currentDateTimeSupplier,
+                                 CandlestickManager candlestickManager) {
+    super(autoTradeOrder, state, currentDateTimeSupplier, candlestickManager);
   }
 
   @Override

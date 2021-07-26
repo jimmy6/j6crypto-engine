@@ -3,6 +3,7 @@ package com.j6crypto.logic.stop;
 import com.j6crypto.logic.StopTradeLogic;
 import com.j6crypto.logic.TradeLogic;
 import com.j6crypto.logic.entity.state.AutoTradeOrder;
+import com.j6crypto.service.CandlestickManager;
 import com.j6crypto.to.setup.ProfitPercentageTpSetup;
 import com.j6crypto.to.TimeData;
 import com.j6crypto.to.Trade;
@@ -23,8 +24,9 @@ import static com.j6crypto.to.Trade.LongShort.SHORT;
 public class ProfitPercentageTp extends StopTradeLogic<ProfitPercentageTpSetup> {
   private static Logger logger = LoggerFactory.getLogger(ProfitPercentageTp.class);
 
-  public ProfitPercentageTp(AutoTradeOrder autoTradeOrder, ProfitPercentageTpSetup state, Supplier<LocalDateTime> currentDateTimeSupplier) {
-    super(autoTradeOrder, state, currentDateTimeSupplier);
+  public ProfitPercentageTp(AutoTradeOrder autoTradeOrder, ProfitPercentageTpSetup state, Supplier<LocalDateTime> currentDateTimeSupplier,
+                            CandlestickManager candlestickManager) {
+    super(autoTradeOrder, state, currentDateTimeSupplier, candlestickManager);
   }
 
   @Override

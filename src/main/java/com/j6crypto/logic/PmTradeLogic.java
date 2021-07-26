@@ -4,6 +4,7 @@ import com.j6crypto.engine.EngineUtil;
 import com.j6crypto.engine.TradePlatform;
 import com.j6crypto.logic.entity.state.AutoTradeOrder;
 import com.j6crypto.logic.entity.state.State;
+import com.j6crypto.service.CandlestickManager;
 import com.j6crypto.to.Trade;
 import com.j6crypto.to.setup.AutoTradeOrderSetup;
 import org.slf4j.Logger;
@@ -28,8 +29,9 @@ public abstract class PmTradeLogic<T extends State> extends TradeLogic<T> {
   public TradePlatform tradePlatform;
   public EntityManager em;
 
-  public PmTradeLogic(AutoTradeOrder autoTradeOrder, T state, Supplier<LocalDateTime> currentDateTimeSupplier) {
-    super(autoTradeOrder, state, currentDateTimeSupplier);
+  public PmTradeLogic(AutoTradeOrder autoTradeOrder, T state, Supplier<LocalDateTime> currentDateTimeSupplier,
+                      CandlestickManager candlestickManager) {
+    super(autoTradeOrder, state, currentDateTimeSupplier, candlestickManager);
   }
 
   public void openMarket(BigDecimal qty, Trade.LongShort longShort) {

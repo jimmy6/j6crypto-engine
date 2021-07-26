@@ -5,6 +5,7 @@ import com.binance.api.client.BinanceApiWebSocketClient;
 import com.j6crypto.logic.PmTradeLogic;
 import com.j6crypto.logic.entity.state.ReboundMartingaleState;
 import com.j6crypto.logic.entity.state.AutoTradeOrder;
+import com.j6crypto.service.CandlestickManager;
 import com.j6crypto.to.TimeData;
 import com.j6crypto.to.Trade;
 import org.slf4j.Logger;
@@ -22,8 +23,9 @@ import java.util.function.Supplier;
 public class ReboundMartingale extends PmTradeLogic<ReboundMartingaleState> {
   private static Logger logger = LoggerFactory.getLogger(ReboundMartingale.class);
 
-  public ReboundMartingale(AutoTradeOrder autoTradeOrder, ReboundMartingaleState state, Supplier<LocalDateTime> currentDateTimeSupplier) {
-    super(autoTradeOrder, state, currentDateTimeSupplier);
+  public ReboundMartingale(AutoTradeOrder autoTradeOrder, ReboundMartingaleState state, Supplier<LocalDateTime> currentDateTimeSupplier,
+                           CandlestickManager candlestickManager) {
+    super(autoTradeOrder, state, currentDateTimeSupplier, candlestickManager);
   }
 
   @Override
