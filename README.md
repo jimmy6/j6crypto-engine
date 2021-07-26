@@ -77,3 +77,8 @@ This is API Testing framework. Run EngineApiTest.java for testing.
 ## Roadmap
 Auto adjust/assign pod crypto-engine base on memory and cpu usage by using Spring Boot Actuator.
 
+
+## Rebound Martingale Trading Logic
+There is existing trading logic simulating following trading logic
+![Rebound Martingale Trading Logic](./doc/reboundmartingale.PNG?raw=true)
+![Page Rebound Martingale](./doc/pagereboundmartingale.PNG?raw=true)
