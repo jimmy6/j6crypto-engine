@@ -1,3 +1,6 @@
+# J6Crypto Engine
+J6Crypto is backend engine to run user defined trading strategy. Each trading strategy will start a bot instance to run in kubernete pod. 1 pod may run multiple trading bots with spring boot. 
+
 # J6crypto Engine Architecture
 ![J6crypto Engine Architecture](./doc/j6crypto.PNG?raw=true)
 
