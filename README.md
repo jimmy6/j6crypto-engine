@@ -10,7 +10,7 @@
 4. Ready to use more features from zookeeper.
 
 
-## Setup
+## Local Setup
 1. Download kafka_2.13-2.8.0
 2. Start Zookeeper
 ```
@@ -31,6 +31,29 @@ kafka-server-start.bat ..\..\config\server.properties
 ./mvnw spring-boot:run
 ```
 
+## Kubernetes Setup
+```
+kubectl scale deployment.apps/zookeeper --replicas=0 --namespace=j6crypto
+kubectl delete -f c:\workspace\j6crypto-engine\kube\zookeeper.yml --namespace=j6crypto
+kubectl create -f c:\workspace\j6crypto-engine\kube\zookeeper.yml --namespace=j6crypto
+kubectl scale deployment.apps/zookeeper --replicas=1 --namespace=j6crypto
+
+kubectl scale deployment.apps/kafka --replicas=0 --namespace=j6crypto 
+kubectl delete -f c:\workspace\j6crypto-engine\kube\kafka.yml --namespace=j6crypto
+kubectl create -f c:\workspace\j6crypto-engine\kube\kafka.yml --namespace=j6crypto
+kubectl scale deployment.apps/kafka --replicas=1 --namespace=j6crypto
+
+kubectl scale deployment.apps/j6crypto-engine --replicas=0 --namespace=j6crypto 
+kubectl delete -f c:\workspace\j6crypto-engine\j6crypto-engine.yml --namespace=j6crypto 
+kubectl create -f c:\workspace\j6crypto-engine\j6crypto-engine.yml --namespace=j6crypto
+kubectl scale deployment.apps/j6crypto-engine --replicas=1 --namespace=j6crypto
+
+kubectl scale deployment.apps/j6crypto-gateway --replicas=0 --namespace=j6crypto  
+kubectl delete -f c:\workspace\j6crypto-gateway\j6crypto-gateway.yml --namespace=j6crypto  
+kubectl create -f c:\workspace\j6crypto-gateway\j6crypto-gateway.yml --namespace=j6crypto 
+kubectl scale deployment.apps/j6crypto-gateway --replicas=1 --namespace=j6crypto
+```
+
 ## Spring boot application starter
 1. J6CryptoAllApp - All in one starter.
 2. J6CryptoApiApp - Start Rest API only.
@@ -45,7 +68,7 @@ kafka-server-start.bat ..\..\config\server.properties
 
 
 ## Entity Relationship
-![J6crypto Entity Relationship](./doc/engine.PNG?raw=true)
+![J6crypto Entity Relationship](./doc/entity.PNG?raw=true)
 
 ## j6crypto-test https://github.com/jimmy6/j6crypto-test
 This is API Testing framework. Run EngineApiTest.java for testing.
