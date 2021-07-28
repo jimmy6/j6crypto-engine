@@ -52,7 +52,7 @@ kubectl scale deployment.apps/j6crypto-gateway --replicas=1 --namespace=j6crypto
 kubectl apply -f c:\workspace\j6crypto-engine\kube\public-ingres.yml
 ```
 
-kubectl get pods
+kubectl get pods<br/>
 ![J6crypto Engine Architecture](./doc/getpods.PNG?raw=true)
 
 ## Spring boot application starter
