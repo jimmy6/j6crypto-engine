@@ -73,7 +73,7 @@ kubectl get pods
 
 ## J6Crypto-Test
 This is API Testing framework. Run [EngineApiTest.java](./src/test/java/com/j6crypto/engine/EngineApiTest.java) for testing.
-
+![junit](./doc/junit.PNG?raw=true)
 
 ## Roadmap
 Auto adjust/assign pod crypto-engine base on memory and cpu usage by using Spring Boot Actuator.
