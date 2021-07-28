@@ -6,11 +6,12 @@ J6Crypto is backend engine to run user defined trading strategy. Each trading st
 
 
 ## Why Zookeeper
-* Why Zookeeper service mesh and not kubernets 
+* Why Zookeeper service mesh and not kubernetes 
 1. Local development environmet is same as cloud environment.
 2. Architecture not depend on kubernete.
 3. Since Kafka is using it.
 4. Ready to use more features from zookeeper.
+5. Centralised config/data to enable decentralise microservices/logic.
 
 
 ## Local Setup
@@ -47,7 +48,12 @@ kubectl scale deployment.apps/j6crypto-engine --replicas=1 --namespace=j6crypto
  
 kubectl create -f c:\workspace\j6crypto-gateway\j6crypto-gateway.yml --namespace=j6crypto 
 kubectl scale deployment.apps/j6crypto-gateway --replicas=1 --namespace=j6crypto
+
+kubectl apply -f c:\workspace\j6crypto-engine\kube\public-ingres.yml
 ```
+
+kubectl get pods
+![J6crypto Engine Architecture](./doc/getpods.PNG?raw=true)
 
 ## Spring boot application starter
 1. J6CryptoAllApp - All in one starter.
