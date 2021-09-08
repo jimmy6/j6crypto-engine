@@ -1,16 +1,12 @@
 package com.j6crypto.controller;
 
-import com.j6crypto.config.BeanConfig;
 import com.j6crypto.engine.CryptoEngine;
-import com.j6crypto.engine.entity.MasterDataKey;
 import com.j6crypto.engine.entity.MasterDataKey.IdCoin;
 import com.j6crypto.logic.entity.state.AutoTradeOrder;
 import com.j6crypto.service.AutoTradeOrderService;
 import com.j6crypto.to.TimeData;
-import com.j6crypto.to.setup.AutoTradeOrderSetup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -36,7 +32,6 @@ public class EngineApi {
     if (!timeData.getCode().startsWith(IdCoin.DUMMY.name())) {
       throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, timeData.getCode() + " is not supported in rest api.");
     }
-
     cryptoEngine.monitor(timeData);
   }
 
@@ -46,6 +41,7 @@ public class EngineApi {
     return autoTradeOrderService.getAto(id);
   }
 
+  @Deprecated
   @GetMapping(path = "ato/{id}/run")
   public void runAutoTradeAuto(@PathVariable Integer id) {
     cryptoEngine.addAutoTradeOrder(id);

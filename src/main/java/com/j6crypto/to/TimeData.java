@@ -1,5 +1,6 @@
 package com.j6crypto.to;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -8,12 +9,14 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * @author <a href="mailto:laiseong@gmail.com">Jimmy Au</a>
  */
 public class TimeData implements Serializable {
   private BigDecimal last;
+  @JsonProperty
   private String code;
   @JsonSerialize(using = LocalDateTimeSerializer.class)
   @JsonDeserialize(using = LocalDateTimeDeserializer.class)
@@ -64,6 +67,20 @@ public class TimeData implements Serializable {
 
   public void setCode(String code) {
     this.code = code;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    TimeData timeData = (TimeData) o;
+    return Objects.equals(code, timeData.code) &&
+      Objects.equals(dateTime, timeData.dateTime);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(code, dateTime);
   }
 
   @Override

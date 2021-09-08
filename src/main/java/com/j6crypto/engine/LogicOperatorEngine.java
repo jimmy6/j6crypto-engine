@@ -1,11 +1,16 @@
 package com.j6crypto.engine;
 
+import com.j6crypto.logic.TriggerTradeLogic;
 import com.j6crypto.logic.entity.state.AutoTradeOrder;
 import com.j6crypto.to.Trade;
 import com.j6crypto.to.setup.AutoTradeOrderSetup.LogicOperator;
+import org.springframework.util.CollectionUtils;
+
+import java.util.List;
 
 import static com.j6crypto.to.Trade.LongShort.LONG;
-import static com.j6crypto.to.setup.AutoTradeOrderSetup.LogicOperator.AND;
+import static com.j6crypto.to.setup.AutoTradeOrderSetup.LogicOperator.*;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * @author <a href="mailto:laiseong@gmail.com">Jimmy Au</a>
@@ -24,17 +29,24 @@ public class LogicOperatorEngine {
     return matched ? LONG : null;
   }
 
+  @Deprecated
   public static Trade.LongShort sumPmSignals(AutoTradeOrder autoTradeOrder) {
-    if (autoTradeOrder.getPositionMgmtLogics().stream().allMatch(a -> LONG.equals(a.getSignal()))) {
+    if (!autoTradeOrder.getPositionMgmtLogics().isEmpty()
+      && autoTradeOrder.getPositionMgmtLogics().stream().allMatch(a -> LONG.equals(a.getSignal()))) {
       return LONG;
     }
     return null;
   }
 
-  public static Trade.LongShort sumTriggerSignals(AutoTradeOrder autoTradeOrder) {
-    Trade.LongShort signal = autoTradeOrder.getTriggerLogics().get(0).getSignal();
-    if (autoTradeOrder.getTriggerLogics().stream().allMatch(a -> signal.equals(a.getSignal()))) {
-      return signal;
+  public static Trade.LongShort sumTriggerSignals(List<TriggerTradeLogic> triggerTradeLogics, LogicOperator logicOperator, Trade.LongShort longShort) {
+    if (!isEmpty(triggerTradeLogics)) {
+      if ((AND.equals(logicOperator) || A.equals(logicOperator)) &&
+        triggerTradeLogics.stream().allMatch(a -> longShort.equals(a.getSignal()))) {
+        return longShort;
+      } else if ((OR.equals(logicOperator) || O.equals(logicOperator))
+        && triggerTradeLogics.stream().anyMatch(a -> longShort.equals(a.getSignal()))) {
+        return longShort;
+      }
     }
     return null;
   }

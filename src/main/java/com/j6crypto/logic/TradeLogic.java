@@ -7,14 +7,14 @@ import com.j6crypto.to.Candlestick;
 import com.j6crypto.to.TimeData;
 import com.j6crypto.to.Trade;
 import com.j6crypto.to.setup.AutoTradeOrderSetup;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
+import com.j6crypto.to.setup.SetupBase;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.text.Bidi;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+import java.util.LinkedList;
 import java.util.function.Supplier;
 
 import static com.j6crypto.engine.EngineUtil.*;
@@ -22,7 +22,7 @@ import static com.j6crypto.engine.EngineUtil.*;
 /**
  * @author <a href="mailto:laiseong@gmail.com">Jimmy Au</a>
  */
-public abstract class TradeLogic<T extends State> {
+public abstract class TradeLogic<T extends SetupBase> {
   private T tradeLogicState;
   private AutoTradeOrder autoTradeOrder;
   private BigDecimal currentPrice;
@@ -30,6 +30,7 @@ public abstract class TradeLogic<T extends State> {
   private TimeData timeData;
   public Supplier<LocalDateTime> currentDateTimeSupplier;
   protected CandlestickManager candlestickManager;
+  private Supplier<BigDecimal> valueFromSupplier;
 
   public TradeLogic(AutoTradeOrder autoTradeOrder, T tradeLogicState, Supplier<LocalDateTime> currentDateTimeSupplier,
                     CandlestickManager candlestickManager) {
@@ -43,14 +44,61 @@ public abstract class TradeLogic<T extends State> {
     this.timeData = timeData;
     setCurrentPrice(timeData.getLast());
     prepareData();
-
-    signal = runLogic(timeData);
+    if (tradeLogicState.getCacheSignalForPeriod() != 0) {
+      if (tradeLogicState.getCacheSignalExpiredAt() != null && timeData.getDateTime().isBefore(tradeLogicState.getCacheSignalExpiredAt())) {
+        signal = autoTradeOrder.getLongShort();
+      } else {
+        signal = runLogic(timeData);
+        setCacheSignalExpiredAt(timeData);
+        setValue();
+      }
+    } else {
+      signal = runLogic(timeData);
+      setValue();
+    }
 
     return signal;
   }
 
-  protected boolean validateOpenOrder() {
-    if (isTimeDataAllowToProcess(getAutoTradeOrder(), timeData, currentDateTimeSupplier)) {
+  private void setValue() {
+    if (signal != null && getAutoTradeOrder().getLongShort().equals(signal)) {
+      tradeLogicState.setValue(getValue());
+    } else {
+      tradeLogicState.setValue(null);
+    }
+  }
+
+  private void setCacheSignalExpiredAt(TimeData timeData) {
+    LocalDateTime cacheSignalExpiredAt = null;
+    if (signal != null && getAutoTradeOrder().getLongShort().equals(signal)) {
+      if (AutoTradeOrderSetup.Period.MIN1.equals(getAutoTradeOrder().getPeriod())) {
+        cacheSignalExpiredAt = timeData.getDateTime().plus(
+          tradeLogicState.getCacheSignalForPeriod() + 1, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.MINUTES);
+      } else {
+        throw new RuntimeException("Not supported getAutoTradeOrder().getPeriod -> " + getAutoTradeOrder().getPeriod());
+      }
+    }
+    tradeLogicState.setCacheSignalExpiredAt(cacheSignalExpiredAt);
+  }
+
+  public void setValueFromSupplier(Supplier<BigDecimal> valueFromSupplier) {
+    this.valueFromSupplier = valueFromSupplier;
+  }
+
+  public BigDecimal getValueFromSupplier() {
+    return valueFromSupplier.get();
+  }
+
+  protected BigDecimal getValue() {
+    return getCurrentPrice();
+  }
+
+  protected LinkedList<Candlestick> getCandlesticks() {
+    return candlestickManager.getCandleSticks(timeData.getCode());
+  }
+
+  public boolean validateOpenOrder() {
+    if (getAutoTradeOrder().getTradePlatform().isTimeDataAllowToProcess(getAutoTradeOrder(), timeData, currentDateTimeSupplier)) {
       return true;
     }
     return false;
@@ -66,15 +114,20 @@ public abstract class TradeLogic<T extends State> {
   public void prepareData() {
   }
 
+  public int getPeriod4PrepareTimeData() {
+    return 0;
+  }
+
+  public void onPreviousLogicSignal() {
+  }
+
   public TimeData getTimeData() {
     return timeData;
   }
 
   public abstract Trade.LongShort runLogic(TimeData timeData);
 
-  public boolean isRun() {
-    return autoTradeOrder.getStatus().equals(AutoTradeOrder.Status.PM);
-  }
+  public abstract boolean isRun();
 
   public void setCurrentPrice(BigDecimal currentPrice) {
     this.currentPrice = currentPrice;
@@ -93,7 +146,6 @@ public abstract class TradeLogic<T extends State> {
   }
 
   public Trade.LongShort getSignal() {
-    //TODO consider catch
     return signal;
   }
 }

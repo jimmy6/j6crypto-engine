@@ -2,44 +2,55 @@ package com.j6crypto;
 
 import com.binance.api.client.BinanceApiClientFactory;
 import com.binance.api.client.BinanceApiWebSocketClient;
-import com.binance.api.client.domain.event.CandlestickEvent;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.j6crypto.config.J6ZookeeperAutoServiceRegistrationAutoConfiguration;
+import com.j6crypto.engine.CoinDataProducer;
 import com.j6crypto.engine.CryptoEngine;
 import com.j6crypto.engine.EngineConstant;
-import com.j6crypto.engine.EngineUtil;
+import com.j6crypto.engine.entity.Client;
+import com.j6crypto.engine.entity.MasterDataKey;
 import com.j6crypto.logic.entity.state.AutoTradeOrder;
 import com.j6crypto.logic.entity.state.ProfitReduceFromHighestState;
 import com.j6crypto.logic.entity.state.ReboundMartingaleState;
 import com.j6crypto.service.AutoTradeOrderService;
-import com.j6crypto.service.SecurityService;
-import com.j6crypto.to.TimeData;
+import com.j6crypto.service.EngineDiscoveryService;
+import com.j6crypto.web.ClientContext;
 import com.j6crypto.to.setup.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.cloud.zookeeper.discovery.ConditionalOnZookeeperDiscoveryEnabled;
+import org.springframework.context.annotation.*;
+import org.springframework.test.context.ActiveProfiles;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 
 import static com.j6crypto.engine.EngineUtil.toTimeData;
+import static com.j6crypto.engine.entity.MasterDataKey.IdCoin.BNBBUSD;
 
 /**
  * @author <a href="mailto:laiseong@gmail.com">Jimmy Au</a>
  */
 @SpringBootApplication
+@ActiveProfiles("dev")
 @EnableCaching
-@ComponentScan(basePackages = "com.j6crypto",
-  excludeFilters = @ComponentScan.Filter(SpringBootApplication.class))
+@ComponentScan(basePackages = {"com.j6crypto"},
+  excludeFilters = {@ComponentScan.Filter(SpringBootApplication.class),
+    @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {CoinDataProducer.class})
+  })
+@Configuration
 public class J6CryptoEngineLocalTestApp implements CommandLineRunner {
   private static Logger logger = LoggerFactory.getLogger(J6CryptoEngineLocalTestApp.class);
-  @Autowired
-  private SecurityService securityService;
+  private BinanceApiWebSocketClient client = BinanceApiClientFactory.newInstance().newWebSocketClient();
+
   @Autowired
   private CryptoEngine cryptoEngine;
   @Autowired
@@ -52,74 +63,57 @@ public class J6CryptoEngineLocalTestApp implements CommandLineRunner {
   @Override
   public void run(String... args) {
     try {
-      run();
+      cryptoEngine.initTradingPlatform();
+//      run();
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
-  public void runBreakSupportResistanceTriggerSetup() {
-    BinanceApiWebSocketClient client = BinanceApiClientFactory.newInstance().newWebSocketClient();
+  public void run() {
 
-    String symbol = "bnbbusd".toUpperCase();
     AutoTradeOrderSetup autoTradeOrderSetup = new AutoTradeOrderSetup();
-    autoTradeOrderSetup.setSymbol(symbol);
+    autoTradeOrderSetup.setSymbol(BNBBUSD.name());
+    autoTradeOrderSetup.setClientExchangeId(1);
 
-    //    OpenMarketPriceSetup openMarketPriceState = new OpenMarketPriceSetup();
-//    openMarketPriceState.setQty(new BigDecimal("0.05"));
-//    OpenMarketPrice openMarketPrice = new OpenMarketPrice(autoTradeOrderSetup, openMarketPriceState);
-    BreakSupportResistanceTriggerSetup setup = new BreakSupportResistanceTriggerSetup();
-    setup.setBreakPeriod(60 * 24 * 7);
-    setup.setBreakWithGapBelow(BigDecimal.valueOf(1));
+    BreakSupportResistanceTriggerSetup triggerSetup = new BreakSupportResistanceTriggerSetup(60 * 24 * 7);
+    triggerSetup.setBreakWithGapBelow(BigDecimal.valueOf(1));
+    triggerSetup.setCacheSignalForPeriod(14);
 //    setup.getPriceRange(BigDecimal.valueOf(1));
 
-    ReboundMartingaleState reboundMartingaleState = new ReboundMartingaleState(
-      new ReboundMartingaleSetup(5, false, new BigDecimal("0.5"), new BigDecimal("0.2")));
-
-    autoTradeOrderSetup.getPmStates().add(reboundMartingaleState);
+    autoTradeOrderSetup.getTriggerStates().add(triggerSetup);
 
     ProfitPercentageTpSetup profitPercentageTpSetup = new ProfitPercentageTpSetup(new BigDecimal("0.5"));
-    profitPercentageTpSetup.setLogicCode(EngineConstant.StopLogicCodes.ProfitPercentageTp.name());
 
     ProfitReduceFromHighestState profitReduceFromHighestState =
       new ProfitReduceFromHighestState(new ProfitReduceFromHighestSetup(new BigDecimal("0.2")));
-    profitReduceFromHighestState.setLogicCode(EngineConstant.StopLogicCodes.ProfitReduceFromHighest.name());
 
     autoTradeOrderSetup.getStopStates().add(profitPercentageTpSetup);
     autoTradeOrderSetup.getStopStates().add(profitReduceFromHighestState);
     AutoTradeOrder atoFromJson = null;
+    atoFromJson = atoSetupToAto(autoTradeOrderSetup, atoFromJson);
+
+    autoTradeOrderService.create(atoFromJson);
+
+//    pushDataToMonitor(autoTradeOrderSetup.getSymbol());
+  }
+
+  private AutoTradeOrder atoSetupToAto(AutoTradeOrderSetup autoTradeOrderSetup, AutoTradeOrder atoFromJson) {
     try {
       String json = new ObjectMapper().writeValueAsString(autoTradeOrderSetup);
       atoFromJson = new ObjectMapper().readerFor(AutoTradeOrder.class).readValue(json);
     } catch (JsonProcessingException e) {
       e.printStackTrace();
     }
-
-//    PriceReduceFromHighestSetup priceReduceFromHighestSetup = new PriceReduceFromHighestSetup(new BigDecimal("0.2")));
-//    autoTradeOrderSetup.getStopSetups().add(priceReduceFromHighestSetup);
-
-    securityService.setClientId(17);
-    autoTradeOrderService.create(atoFromJson);
-
-    cryptoEngine.addAutoTradeOrder(atoFromJson.getId());
-//    cryptoEngine.init(); //TODO
-    client.onCandlestickEvent(symbol.toLowerCase(), CandlestickInterval.ONE_MINUTE,
-      response -> {
-        try {
-          cryptoEngine.monitor(toTimeData(response));
-        } catch (Exception e) {
-          logger.error(e.getMessage(), e);
-        }
-      }
-    );
+    return atoFromJson;
   }
 
-  public void run() {
-    BinanceApiWebSocketClient client = BinanceApiClientFactory.newInstance().newWebSocketClient();
+  public void runReboundMartingale() {
 
     String symbol = "bnbbusd".toUpperCase();//btcusdt
     AutoTradeOrderSetup autoTradeOrderSetup = new AutoTradeOrderSetup();
     autoTradeOrderSetup.setSymbol(symbol);
+    autoTradeOrderSetup.setClientExchangeId(0);
     autoTradeOrderSetup.setStatus(AutoTradeOrder.Status.PM);
 
     //    OpenMarketPriceSetup openMarketPriceState = new OpenMarketPriceSetup();
@@ -142,21 +136,17 @@ public class J6CryptoEngineLocalTestApp implements CommandLineRunner {
     autoTradeOrderSetup.getStopStates().add(profitPercentageTpSetup);
     autoTradeOrderSetup.getStopStates().add(profitReduceFromHighestState);
     AutoTradeOrder atoFromJson = null;
-    try {
-      String json = new ObjectMapper().writeValueAsString(autoTradeOrderSetup);
-      atoFromJson = new ObjectMapper().readerFor(AutoTradeOrder.class).readValue(json);
-    } catch (JsonProcessingException e) {
-      e.printStackTrace();
-    }
+    atoFromJson = atoSetupToAto(autoTradeOrderSetup, atoFromJson);
 
 //    PriceReduceFromHighestSetup priceReduceFromHighestSetup = new PriceReduceFromHighestSetup(new BigDecimal("0.2")));
 //    autoTradeOrderSetup.getStopSetups().add(priceReduceFromHighestSetup);
 
-    securityService.setClientId(17);
     autoTradeOrderService.create(atoFromJson);
 
-    cryptoEngine.addAutoTradeOrder(atoFromJson.getId());
-//    cryptoEngine.init(); //TODO
+    pushDataToMonitor(symbol);
+  }
+
+  private void pushDataToMonitor(String symbol) {
     client.onCandlestickEvent(symbol.toLowerCase(), CandlestickInterval.ONE_MINUTE,
       response -> {
         try {
@@ -168,4 +158,20 @@ public class J6CryptoEngineLocalTestApp implements CommandLineRunner {
     );
   }
 
+  @Primary
+  @Bean
+  public ClientContext getClientContext() {
+    return new ClientContext(1);
+  }
+
+  @Primary
+  @Bean
+  public EngineDiscoveryService getEngineDiscoveryService() {
+    return new EngineDiscoveryService() {
+      @Override
+      public int getMsId() {
+        return 1;
+      }
+    };
+  }
 }

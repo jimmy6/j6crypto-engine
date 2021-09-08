@@ -20,7 +20,7 @@ public interface AutoTradeOrderRepo extends JpaRepository<AutoTradeOrder, Intege
 
   List<AutoTradeOrder> findByMsIdAndStatusIn(Integer msId, List<Status> asList);
 
-  @Query(value = "select distinct(ms_id) from auto_trade_order where status in (?1)", nativeQuery = true)
+  @Query(value = "select distinct(msId) from AutoTradeOrder where status in (?1)")
   Set<Integer> findDistinctMsIdByStatusIn(Set<Status> statuses);
 
   @Modifying

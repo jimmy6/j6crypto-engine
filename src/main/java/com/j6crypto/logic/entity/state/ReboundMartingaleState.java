@@ -13,13 +13,12 @@ import java.math.BigDecimal;
 @javax.persistence.Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Entity(name = "ReboundMartingale")
-public class ReboundMartingaleState extends ReboundMartingaleSetup implements State{
+public class ReboundMartingaleState extends ReboundMartingaleSetup{
   private BigDecimal highestPrice;//TODO this should be universal same
   private BigDecimal lowestPrice;// TODO what if restore after hour. so need to manually find again???
   private BigDecimal previousTradedLowestPrice;
   private int noOfTradeCount = 0;
-  @Embedded
-  private CommonState commonState = new CommonState();
+
   public ReboundMartingaleState(){
     setLogicCode(EngineConstant.PmLogicCodes.ReboundMartingale.name());
   }
@@ -67,20 +66,14 @@ public class ReboundMartingaleState extends ReboundMartingaleSetup implements St
       ", lowestPrice=" + lowestPrice +
       ", previousTradedLowestPrice=" + previousTradedLowestPrice +
       ", noOfTradeCount=" + noOfTradeCount +
-      ", commonState=" + commonState +
       ", noOfMartingale=" + noOfMartingale +
       ", tradeSizeDoubleMartingale=" + tradeSizeDoubleMartingale +
       ", reboundEnterPerc=" + reboundEnterPerc +
       ", tradeQty=" + tradeQty +
-      ", commonState=" + commonState +
       ", id=" + id +
       ", createdDate=" + createdDate +
       ", updatedDate=" + updatedDate +
       '}';
   }
 
-  @Override
-  public CommonState getCommonState() {
-    return commonState;
-  }
 }

@@ -34,6 +34,14 @@ items:
       spec:
         containers:    
         - env:
+            - name: spring.cloud.zookeeper.discovery.instance-ip-address
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: spring.datasource.url
+              value: "jdbc:mysql://rm-3ns57cio95545dqk0.mysql.rds.aliyuncs.com:3306/j6crypto-engine"
+            - name: spring.cloud.zookeeper.discovery.prefer-ip-address
+              value: "true"
             - name: server.port
               value: "8082"
             - name: spring.cloud.zookeeper.connect-string
@@ -64,6 +72,6 @@ items:
           resources:
             requests:
               memory: 256Mi        
-          image: jimmy6au/j6crypto-engine:0.0.3-SNAPSHOT
+          image: jimmy6au/j6crypto-engine:0.0.7-SNAPSHOT
           imagePullPolicy: Always
 kind: List

@@ -1,5 +1,6 @@
 package com.j6crypto.to.setup;
 
+import com.j6crypto.engine.EngineConstant;
 import com.j6crypto.engine.entity.EntityBase;
 import com.j6crypto.logic.entity.state.CommonState;
 import com.j6crypto.logic.entity.state.State;
@@ -17,22 +18,20 @@ import java.math.BigDecimal;
 @Entity(name = "OpenMarketPrice")
 @javax.persistence.Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class OpenMarketPriceSetup extends SetupBase implements State {
+public class OpenMarketPriceSetup extends SetupBase {
 
   private BigDecimal qty;
   private LongShort longShort = LongShort.LONG;
-  @Embedded
-  private CommonState commonState = new CommonState();
 
-  @Override
-  public CommonState getCommonState() {
-    return commonState;
+  public OpenMarketPriceSetup() {
+    setLogicCode(EngineConstant.PmLogicCodes.OpenMarketPrice.name());
   }
 
-  public void setCommonState(CommonState commonState) {
-    this.commonState = commonState;
+  public OpenMarketPriceSetup(LongShort longShort, BigDecimal qty) {
+    setLogicCode(EngineConstant.PmLogicCodes.OpenMarketPrice.name());
+    this.longShort = longShort;
+    this.qty = qty;
   }
-
 
   /**
    * Min Mandatory
@@ -40,10 +39,8 @@ public class OpenMarketPriceSetup extends SetupBase implements State {
    * @param qty
    */
   public OpenMarketPriceSetup(BigDecimal qty) {
+    setLogicCode(EngineConstant.PmLogicCodes.OpenMarketPrice.name());
     this.qty = qty;
-  }
-
-  public OpenMarketPriceSetup() {
   }
 
   public LongShort getLongShort() {

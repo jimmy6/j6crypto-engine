@@ -15,11 +15,10 @@ import java.math.BigDecimal;
 @Entity(name = "ProfitReduceFromHighest")
 @javax.persistence.Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE) //Provide cache strategy.
-public class ProfitReduceFromHighestState extends ProfitReduceFromHighestSetup implements State {
+public class ProfitReduceFromHighestState extends ProfitReduceFromHighestSetup {
 
   private BigDecimal highestProfit = BigDecimal.ZERO;
-  @Embedded
-  private CommonState commonState = new CommonState();
+
 
   public ProfitReduceFromHighestState(){
     setLogicCode(EngineConstant.StopLogicCodes.ProfitReduceFromHighest.name());
@@ -27,14 +26,6 @@ public class ProfitReduceFromHighestState extends ProfitReduceFromHighestSetup i
   public ProfitReduceFromHighestState(ProfitReduceFromHighestSetup profitReduceFromHighestSetup) {
    super(profitReduceFromHighestSetup);
     setLogicCode(EngineConstant.StopLogicCodes.ProfitReduceFromHighest.name());
-  }
-
-  public void setCommonState(CommonState commonState) {
-    this.commonState = commonState;
-  }
-
-  public CommonState getCommonState() {
-    return commonState;
   }
 
   public BigDecimal getHighestProfit() {
@@ -50,7 +41,6 @@ public class ProfitReduceFromHighestState extends ProfitReduceFromHighestSetup i
     return "ProfitReduceFromHighestState{" +
       "id=" + id +
       ", highestProfit=" + highestProfit +
-      ", commonState=" + commonState +
       ", tpOnProfitReducePerc=" + tpOnProfitReducePerc +
       ", createdDate=" + createdDate +
       ", updatedDate=" + updatedDate +

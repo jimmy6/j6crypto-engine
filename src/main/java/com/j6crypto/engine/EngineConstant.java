@@ -5,16 +5,21 @@ package com.j6crypto.engine;
  */
 public class EngineConstant {
   public final static String COIN_TOPIC_PREFIX = "coin.";
+
   public enum TriggerLogicCodes {
-    DummyTrigger
+    DummyTrigger, BreakSupportResistanceTrigger, CrossValueTrigger
   }
 
   public enum PmLogicCodes {
-    OpenMarketPrice, ReboundMartingale
+    OpenMarketPrice, ReboundMartingale, // outdate
+    Rebound
   }
 
   public enum StopLogicCodes {
     ProfitPercentageTp, ProfitReduceFromHighest, PriceReduceFromHighest
+  }
+  public enum PmCodes {
+    MartingaleDoublePm
   }
 
 }

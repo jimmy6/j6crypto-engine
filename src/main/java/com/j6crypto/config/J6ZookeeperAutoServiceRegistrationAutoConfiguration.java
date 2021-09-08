@@ -4,6 +4,7 @@ import com.j6crypto.repo.AutoTradeOrderRepo;
 import com.j6crypto.service.EngineDiscoveryService;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.serviceregistry.AutoServiceRegistrationAutoConfiguration;
@@ -50,7 +51,7 @@ public class J6ZookeeperAutoServiceRegistrationAutoConfiguration {
     }
 
     properties.getMetadata().put(StatusConstants.INSTANCE_STATUS_KEY, properties.getInitialStatus());
-    properties.getMetadata().put(ENGINE_CAPACITY_NAME, "1");
+    properties.getMetadata().put(ENGINE_CAPACITY_NAME, "0;0;0");
     ZookeeperInstance zookeeperInstance = new ZookeeperInstance(engineDiscoveryService.getMsId() + "",
       appName, properties.getMetadata());
     RegistrationBuilder builder = ServiceInstanceRegistration.builder().address(host)

@@ -16,6 +16,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 
@@ -27,20 +28,21 @@ import static org.springframework.http.HttpMethod.GET;
  * @author <a href="mailto:laiseong@gmail.com">Jimmy Au</a>
  */
 public class ApiTestBase {
-  public static final String API_KEY = "zAkuceYTazpLli0ZLdfNMexHys8wZcIY3RQKZZPRpA9l3AgZCWFJq885Aj38iAfP";
-  public static final String SECRET_KEY = "bYZT1aDb1n1gFIN4pe4hsYDVYkpAXiw5qNuCYBzEyzNHW5bvykJp1ONtohbTrvbb";
-  //  public static final String URL = "http://127.0.0.1:8085/";
-  public static final String URL = "http://127.0.0.1:8080/";
-//  public static final String URL = "http://8.210.145.139:8082/";
+  public static final String API_KEY = "asdsadsadas";
+  public static final String SECRET_KEY = "sadsadsadasdsa";
+  public static final String URL = "http://127.0.0.1:8080/";//gateway
+//  public static final String URL = "http://test5.cn-hongkong.alicontainer.com/";
+//public static final String URL = "http://127.0.0.1:8081/";//direct engine
 
-
-  protected static String authToken;
+  protected static String authToken = "999";
 
   public static BigDecimal price = new BigDecimal("123.122335");
   public static String dummyCoin = "DUMMY";
   public static LocalDateTime dummyDateTime = LocalDateTime.now().withSecond(59);
   public static RestTemplate restTemplate = new RestTemplateBuilder()
     .messageConverters(new MappingJackson2HttpMessageConverter(new ObjectMapper()))
+    .setConnectTimeout(Duration.ofMinutes(10))
+    .setReadTimeout(Duration.ofMinutes(10))
     .build();
 
   protected static <T> HttpEntity<T> entity() {
@@ -55,11 +57,17 @@ public class ApiTestBase {
   protected static HttpHeaders getHeader() {
     HttpHeaders headers = new HttpHeaders();
     headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+    headers.setContentType(MediaType.APPLICATION_JSON);
     headers.add("Authorization", authToken);
     return headers;
   }
 
   public Integer postAto(AutoTradeOrderSetup atoSetup) {
+//    try {
+//      Thread.sleep(1000);
+//    } catch (InterruptedException e) {
+//      e.printStackTrace();
+//    }
     return restTemplate.postForObject(getEngineApiPath("ato"), entity(atoSetup), Integer.class);
   }
 
@@ -83,6 +91,11 @@ public class ApiTestBase {
     ApiTestBase.price = price;
     dummyDateTime = dummyDateTime.plusMinutes(1);
     restTemplate.postForObject(getEngineApiPath("monitor"), entity(new TimeData(code, price, dummyDateTime)), Void.class);
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 
   public static void sendPriceAfterPercentage(String percentage) {
@@ -90,12 +103,8 @@ public class ApiTestBase {
     sendMonitor(dummyCoin, price);
   }
 
-  private void assertAto(AutoTradeOrder totalCost, String positionQty, String s1, String s2, String s3, Trade.LongShort aLong) {
-//    Assertions.assertEquals();
-  }
-
   public String[] ignoreAtoFields() {
-    return new String[]{"clientExchangeId", "clientId", "id", "firstTrade", "lastTrade", "triggerStates", "pmStates", "stopStates", "msId"};
+    return new String[]{"clientExchangeId", "clientId", "id", "firstTrade", "lastTrade", "triggerStates", "pmStates", "pmState", "stopStates", "msId"};
   }
 
   public static AutoTradeOrder getAto(Integer atoId) {

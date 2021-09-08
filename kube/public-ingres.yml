@@ -5,7 +5,7 @@ metadata:
   namespace: j6crypto
 spec:
   rules:
-    - host: "*.99999999999999999999.cn-hongkong.alicontainer.com"
+    - host: "*.123432323.cn-hongkong.alicontainer.com"
       http:
         paths:
           - path: /

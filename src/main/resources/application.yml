@@ -1,0 +1,44 @@
+server:
+   port: 8080
+
+jwt:
+  token:
+    validity: 100000
+spring:
+  jmx:
+    enabled: false
+  cloud:
+    zookeeper:
+      discovery:
+        instance-ip-address: "127.0.0.1"
+      connect-string: "127.0.0.1:2181"
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+          url-expression: "'http://'+serviceId"
+#    kubernetes:
+#      reload:
+#        enabled: true
+#        mode: polling
+#        period: 5000
+#      discovery:
+#        filter: "metadata.labels['deploymentdummy']"
+#      routes:
+#      - id: j6crypto-engine
+#        uri: http://j6crypto-engine
+#        predicates:
+#          - Path=/engine/**/ms/{msId}/**
+#      - id: j6crypto-engine
+#        uri: lb://j6crypto-engine
+#        predicates:
+#        - Path=/engine/**,/client/**,/auth/**
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.http.server.reactive: DEBUG
+    org.springframework.web.reactive: DEBUG
+    reactor.ipc.netty: DEBUG
+    reactor.netty: DEBUG
+
+#management.endpoints.web.exposure.include: '*'

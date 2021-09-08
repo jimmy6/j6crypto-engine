@@ -6,6 +6,7 @@ import com.j6crypto.to.Candlestick;
 import com.j6crypto.to.TimeData;
 import com.j6crypto.to.setup.AutoTradeOrderSetup;
 import com.j6crypto.to.setup.AutoTradeOrderSetup.Period;
+import org.apache.tomcat.jni.Local;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,6 +14,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.function.Supplier;
 
 import static java.time.Instant.ofEpochMilli;
@@ -22,7 +24,7 @@ import static java.time.Instant.ofEpochMilli;
  */
 public class EngineUtil {
   public static void main(String[] args) {
-    System.out.println(priceAfterPercentage(new BigDecimal("20"), new BigDecimal("90")));
+
   }
 
   public static BigDecimal priceAfterPercentage(BigDecimal price, BigDecimal percentage) {
@@ -39,13 +41,6 @@ public class EngineUtil {
     return now.toEpochSecond(ZoneOffset.UTC) / 60;
   }
 
-  public static boolean isTimeDataAllowToProcess(AutoTradeOrder ato, TimeData timeData, Supplier<LocalDateTime> currentDateTimeSupplier) {
-    if (ato.getTradePlatform() instanceof DummyTradingPlatform) {
-      return true;
-    }
-    return isTimeData1PeriodDelay(ato.getPeriod(), timeData, currentDateTimeSupplier);
-  }
-
   public static boolean isTimeData1PeriodDelay(Period period, TimeData timeData, Supplier<LocalDateTime> currentDateTimeSupplier) {
     int minute;
     if (Period.MIN1.equals(period)) {
@@ -57,7 +52,7 @@ public class EngineUtil {
     return getEpochMinute(timeData.getDateTime()) + minute == getEpochMinute(currentDateTimeSupplier.get());
   }
 
-  public static Candlestick buildCandleStick(TimeData timeData){
+  public static Candlestick buildCandleStick(TimeData timeData) {
     Candlestick candlestick = new Candlestick(timeData.getLast(), timeData.getDateTime());
 
 //    candlestick.setOpen(timeData.getOpen()==null?timeData.getLast():timeData.getOpen());

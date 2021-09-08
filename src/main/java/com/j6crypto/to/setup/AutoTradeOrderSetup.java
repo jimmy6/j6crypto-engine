@@ -3,10 +3,8 @@ package com.j6crypto.to.setup;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.j6crypto.engine.entity.EntityBase;
-import com.j6crypto.logic.entity.state.PriceReduceFromHighestState;
-import com.j6crypto.logic.entity.state.ProfitReduceFromHighestState;
-import com.j6crypto.logic.entity.state.ReboundMartingaleState;
-import com.j6crypto.logic.entity.state.State;
+import com.j6crypto.logic.entity.state.*;
+import com.j6crypto.logic.positionmgmt.Pm;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
@@ -14,8 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.EXISTING_PROPERTY;
-import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY;
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
+import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.FetchType.EAGER;
+import static javax.persistence.FetchType.LAZY;
+import static org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE;
 
 @MappedSuperclass
 public class AutoTradeOrderSetup extends EntityBase {
@@ -36,38 +37,66 @@ public class AutoTradeOrderSetup extends EntityBase {
 
   protected Status status = Status.TRIGGER;
 
-  public enum LogicOperator {OR, AND,}
+  public enum LogicOperator {OR, AND, O, A}
+
+  protected LogicOperator triggerLogicOperator = LogicOperator.AND;
 
   protected LogicOperator stopLogicOperator = LogicOperator.AND;
   //https://www.baeldung.com/jackson-annotations
 //  @JsonDeserialize(using = StateDeserializer.class)
-  @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-  @OneToMany(targetEntity = SetupBase.class, cascade = CascadeType.ALL)
+  @org.hibernate.annotations.Cache(usage = READ_WRITE)
+  @OneToMany(targetEntity = SetupBase.class, cascade = ALL)
   @OrderBy("id")
   @JsonTypeInfo(use = NAME, include = EXISTING_PROPERTY, property = "logicCode", visible = true)
-  @JsonSubTypes({@JsonSubTypes.Type(value = DummyTriggerSetup.class, name = "DummyTrigger")})
-  protected List<State> triggerStates = new ArrayList<>();
+  @JsonSubTypes({@JsonSubTypes.Type(value = DummyTriggerSetup.class, name = "DummyTrigger"),
+    @JsonSubTypes.Type(value = BreakSupportResistanceTriggerSetup.class, name = "BreakSupportResistanceTrigger"),
+    @JsonSubTypes.Type(value = CrossValueTriggerState.class, name = "CrossValueTrigger")})
+  protected List<SetupBase> triggerStates = new ArrayList<>();
 
-  @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-  @OneToMany(targetEntity = SetupBase.class, cascade = CascadeType.ALL)
+  @org.hibernate.annotations.Cache(usage = READ_WRITE)
+  @OneToMany(targetEntity = SetupBase.class, cascade = ALL)
   @OrderBy("id")
   @JsonTypeInfo(use = NAME, include = EXISTING_PROPERTY, property = "logicCode", visible = true)
   @JsonSubTypes({
+    @JsonSubTypes.Type(value = ReboundState.class, name = "Rebound"),
     @JsonSubTypes.Type(value = ReboundMartingaleState.class, name = "ReboundMartingale"),
     @JsonSubTypes.Type(value = OpenMarketPriceSetup.class, name = "OpenMarketPrice")})
-  protected List<State> pmStates = new ArrayList<>();
+  protected List<SetupBase> pmStates = new ArrayList<>();
 
-  @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-  @OneToMany(targetEntity = SetupBase.class, cascade = CascadeType.ALL)
+  @org.hibernate.annotations.Cache(usage = READ_WRITE)
+  @OneToMany(targetEntity = SetupBase.class, cascade = ALL)
   @OrderBy("id")
   @JsonTypeInfo(use = NAME, include = EXISTING_PROPERTY, property = "logicCode", visible = true)
   @JsonSubTypes({
     @JsonSubTypes.Type(value = PriceReduceFromHighestState.class, name = "PriceReduceFromHighest"),
     @JsonSubTypes.Type(value = ProfitReduceFromHighestState.class, name = "ProfitReduceFromHighest"),
     @JsonSubTypes.Type(value = ProfitPercentageTpSetup.class, name = "ProfitPercentageTp")})
-  protected List<State> stopStates = new ArrayList<>();
+  protected List<SetupBase> stopStates = new ArrayList<>();
+
+  @org.hibernate.annotations.Cache(usage = READ_WRITE)
+  @OneToOne(cascade = ALL)
+  @JsonTypeInfo(use = NAME, include = EXISTING_PROPERTY, property = "logicCode", visible = true)
+  @JsonSubTypes({
+    @JsonSubTypes.Type(value = MartingaleDoublePmState.class, name = "MartingaleDoublePm")})
+  protected SetupBase pmState;
 
   public AutoTradeOrderSetup() {
+  }
+
+  public SetupBase getPmState() {
+    return pmState;
+  }
+
+  public void setPmState(SetupBase pmState) {
+    this.pmState = pmState;
+  }
+
+  public LogicOperator getTriggerLogicOperator() {
+    return triggerLogicOperator;
+  }
+
+  public void setTriggerLogicOperator(LogicOperator triggerLogicOperator) {
+    this.triggerLogicOperator = triggerLogicOperator;
   }
 
   public ProductType getProductType() {
@@ -86,27 +115,27 @@ public class AutoTradeOrderSetup extends EntityBase {
     this.clientExchangeId = clientExchangeId;
   }
 
-  public List<State> getTriggerStates() {
+  public List<SetupBase> getTriggerStates() {
     return triggerStates;
   }
 
-  public void setTriggerStates(List<State> triggerStates) {
+  public void setTriggerStates(List<SetupBase> triggerStates) {
     this.triggerStates = triggerStates;
   }
 
-  public List<State> getStopStates() {
+  public List<SetupBase> getStopStates() {
     return stopStates;
   }
 
-  public void setStopStates(List<State> stopStates) {
+  public void setStopStates(List<SetupBase> stopStates) {
     this.stopStates = stopStates;
   }
 
-  public List<State> getPmStates() {
+  public List<SetupBase> getPmStates() {
     return pmStates;
   }
 
-  public void setPmStates(List<State> pmStates) {
+  public void setPmStates(List<SetupBase> pmStates) {
     this.pmStates = pmStates;
   }
 

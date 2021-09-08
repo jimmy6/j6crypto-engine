@@ -1,6 +1,7 @@
 package com.j6crypto.logic.trigger;
 
 import com.j6crypto.logic.TradeLogic;
+import com.j6crypto.logic.TriggerTradeLogic;
 import com.j6crypto.logic.entity.state.AutoTradeOrder;
 import com.j6crypto.service.CandlestickManager;
 import com.j6crypto.to.Candlestick;
@@ -16,7 +17,7 @@ import java.util.function.Supplier;
  * @author <a href="mailto:laiseong@gmail.com">Jimmy Au</a>
  */
 
-public class DummyTrigger extends TradeLogic<DummyTriggerSetup> {
+public class DummyTrigger extends TriggerTradeLogic<DummyTriggerSetup> {
   public DummyTrigger(AutoTradeOrder autoTradeOrder, DummyTriggerSetup state, Supplier<LocalDateTime> currentDateTimeSupplier
   , CandlestickManager candlestickManager) {
     super(autoTradeOrder, state, currentDateTimeSupplier, candlestickManager);
@@ -24,7 +25,7 @@ public class DummyTrigger extends TradeLogic<DummyTriggerSetup> {
 
   @Override
   public Trade.LongShort getSignal() {
-    return super.getSignal();
+    return getTradeLogicState().getRunLogic();
   }
 
   @Override

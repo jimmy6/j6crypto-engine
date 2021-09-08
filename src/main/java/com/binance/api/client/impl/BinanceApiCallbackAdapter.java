@@ -3,11 +3,13 @@ package com.binance.api.client.impl;
 import com.binance.api.client.BinanceApiCallback;
 import com.binance.api.client.BinanceApiError;
 import com.binance.api.client.exception.BinanceApiException;
+import com.j6crypto.exception.ConnectionException;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 
 import static com.binance.api.client.impl.BinanceApiServiceGenerator.getBinanceApiError;
 
@@ -42,7 +44,13 @@ public class BinanceApiCallbackAdapter<T> implements Callback<T> {
 
   @Override
   public void onFailure(Call<T> call, Throwable throwable) {
-    if (throwable instanceof BinanceApiException) {
+    if (throwable instanceof SocketTimeoutException) {
+      // "Connection Timeout";
+      throw new ConnectionException(throwable.getMessage());
+    } else if (throwable instanceof IOException) {
+      // "Timeout";
+      throw new ConnectionException(throwable.getMessage());
+    } else if (throwable instanceof BinanceApiException) {
       callback.onFailure(throwable);
     } else {
       callback.onFailure(new BinanceApiException(throwable));

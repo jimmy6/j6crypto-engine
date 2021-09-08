@@ -19,7 +19,7 @@ public class EntityBase {
   protected LocalDateTime createdDate;
   @org.springframework.data.annotation.Version
   @JsonIgnore
-  @UpdateTimestamp
+  @UpdateTimestamp()
   protected LocalDateTime updatedDate;
 
   public LocalDateTime getCreatedDate() {

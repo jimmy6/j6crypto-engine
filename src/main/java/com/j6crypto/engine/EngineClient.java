@@ -1,6 +1,5 @@
 package com.j6crypto.engine;
 
-import com.j6crypto.logic.entity.state.AutoTradeOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,6 +15,7 @@ public class EngineClient {
   @Value("${server.port}")
   private String port;
 
+  @Deprecated
   public void addAtoToCryptoEngine(int msId, int atoId) {
     restTemplate.getForObject(getEngineApiPath(msId, "ato/" + atoId + "/run"), Void.class);
   }

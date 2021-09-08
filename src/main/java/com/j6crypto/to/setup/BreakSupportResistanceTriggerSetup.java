@@ -1,8 +1,10 @@
 package com.j6crypto.to.setup;
 
+import com.j6crypto.engine.EngineConstant;
 import com.j6crypto.logic.entity.state.CommonState;
 import com.j6crypto.logic.entity.state.State;
 import com.j6crypto.service.CandlestickManager;
+import com.j6crypto.to.Trade;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.Cacheable;
@@ -16,18 +18,16 @@ import java.math.BigDecimal;
 @Entity(name = "BreakSupportResistanceTrigger")
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class BreakSupportResistanceTriggerSetup extends SetupBase implements State {
+public class BreakSupportResistanceTriggerSetup extends SetupBase {
   private int breakPeriod;
   //support resistance range
-  private BigDecimal priceRange = BigDecimal.valueOf(5);
+  private BigDecimal priceRange;
   private BigDecimal firstBreakVol;
-  private BigDecimal breakWithGapBelow = BigDecimal.valueOf(1);
+  private BigDecimal breakWithGapBelow;
 
-  @Embedded
-  private CommonState commonState = new CommonState();
-
-  public BreakSupportResistanceTriggerSetup(int breakPeriod, BigDecimal priceRange,
-                                            BigDecimal firstBreakVol, BigDecimal breakWithGapBelow) {
+  public BreakSupportResistanceTriggerSetup(int breakPeriod, BigDecimal priceRange, BigDecimal firstBreakVol,
+                                            BigDecimal breakWithGapBelow) {
+    setLogicCode(EngineConstant.TriggerLogicCodes.BreakSupportResistanceTrigger.name());
     this.breakPeriod = breakPeriod;
     this.priceRange = priceRange;
     this.firstBreakVol = firstBreakVol;
@@ -35,6 +35,12 @@ public class BreakSupportResistanceTriggerSetup extends SetupBase implements Sta
   }
 
   public BreakSupportResistanceTriggerSetup() {
+    setLogicCode(EngineConstant.TriggerLogicCodes.BreakSupportResistanceTrigger.name());
+  }
+
+  public BreakSupportResistanceTriggerSetup(int breakPeriod) {
+    setLogicCode(EngineConstant.TriggerLogicCodes.BreakSupportResistanceTrigger.name());
+    this.breakPeriod = breakPeriod;
   }
 
   public int getBreakPeriod() {
@@ -70,12 +76,12 @@ public class BreakSupportResistanceTriggerSetup extends SetupBase implements Sta
   }
 
   @Override
-  public CommonState getCommonState() {
-    return commonState;
+  public String toString() {
+    return "BreakSupportResistanceTriggerSetup{" +
+      "breakPeriod=" + breakPeriod +
+      ", priceRange=" + priceRange +
+      ", firstBreakVol=" + firstBreakVol +
+      ", breakWithGapBelow=" + breakWithGapBelow +
+      '}';
   }
-
-  public void setCommonState(CommonState commonState) {
-    this.commonState = commonState;
-  }
-
 }

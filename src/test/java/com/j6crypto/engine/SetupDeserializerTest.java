@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.j6crypto.logic.entity.state.AutoTradeOrder;
 import com.j6crypto.logic.entity.state.ProfitReduceFromHighestState;
 import com.j6crypto.logic.entity.state.ReboundMartingaleState;
-import com.j6crypto.to.setup.AutoTradeOrderSetup;
-import com.j6crypto.to.setup.ProfitReduceFromHighestSetup;
-import com.j6crypto.to.setup.ReboundMartingaleSetup;
+import com.j6crypto.to.setup.*;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 
@@ -21,6 +19,14 @@ public class SetupDeserializerTest {
   @Test
   public void testDeserializer() throws IOException {
     AutoTradeOrderSetup autoTradeOrder = new AutoTradeOrderSetup();
+
+    BreakSupportResistanceTriggerSetup triggerSetup = new BreakSupportResistanceTriggerSetup(7);
+    autoTradeOrder.getTriggerStates().add(triggerSetup);
+
+    CrossValueTriggerSetup crossPreviousValueSetup = new CrossValueTriggerSetup(3);
+    crossPreviousValueSetup.setValueFrom("BreakSupportResistance");
+    autoTradeOrder.getTriggerStates().add(crossPreviousValueSetup);
+
     ReboundMartingaleState reboundMartingaleState = new ReboundMartingaleState(
       new ReboundMartingaleSetup(5, false, new BigDecimal("0.5"), new BigDecimal("0.2")));
     autoTradeOrder.getPmStates().add(reboundMartingaleState);
@@ -36,6 +42,8 @@ public class SetupDeserializerTest {
       .readerFor(AutoTradeOrderSetup.class)
       .readValue(json);
 
+    Assertions.assertEquals(crossPreviousValueSetup.toString(),  atoRestore.getTriggerStates().get(1).toString());
+    Assertions.assertEquals(triggerSetup.toString(),  atoRestore.getTriggerStates().get(0).toString());
     Assertions.assertEquals(reboundMartingaleState.toString(), ((ReboundMartingaleState) atoRestore.getPmStates().get(0)).toString());
     Assertions.assertEquals(profitReduceFromHighestState.toString(), ((ProfitReduceFromHighestState) atoRestore.getStopStates().get(0)).toString());
     Assertions.assertEquals(profitReduceFromHighestState.getLogicCode(), ((ProfitReduceFromHighestState) atoRestore.getStopStates().get(0)).getLogicCode());

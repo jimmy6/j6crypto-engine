@@ -7,6 +7,8 @@ import org.apache.curator.x.discovery.ServiceDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Lookup;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.zookeeper.discovery.ZookeeperDiscoveryClient;
 import org.springframework.cloud.zookeeper.discovery.ZookeeperDiscoveryProperties;
 import org.springframework.cloud.zookeeper.discovery.ZookeeperInstance;
@@ -15,13 +17,11 @@ import org.springframework.cloud.zookeeper.serviceregistry.ServiceInstanceRegist
 import org.springframework.cloud.zookeeper.serviceregistry.ZookeeperAutoServiceRegistration;
 import org.springframework.cloud.zookeeper.serviceregistry.ZookeeperRegistration;
 import org.springframework.cloud.zookeeper.serviceregistry.ZookeeperServiceRegistry;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,12 +33,15 @@ public class EngineDiscoveryService {
   private static Logger logger = LoggerFactory.getLogger(EngineDiscoveryService.class);
   public static final String ENGINE_SERVICE_NAME = "j6crypto-engine";
   public static final String ENGINE_CAPACITY_NAME = "engine-capacity";
+  private static final String CAPACITY_DELIMITER = ";";
 
   @Autowired
   private ZookeeperDiscoveryClient discoveryClient;
   @Autowired
   private AutoTradeOrderRepo atoRepo;
   private int msId;
+  @Autowired
+  private ServiceDiscovery serviceDiscovery;
 
   public int getMsId() {
     return msId;
@@ -63,18 +66,34 @@ public class EngineDiscoveryService {
       unassignedMsIds.remove(msId);
     }
     if (unassignedMsIds.size() >= 1) {
-      logger.warn("MS Id not assign {}" + unassignedMsIds);
+      logger.warn("MS Id not assign {}" + unassignedMsIds);//TODO what if still has unassign
     }
 
-//    registrationBuilder.id(msIdToRegister + "");
-//    registrationBuilder.name(ENGINE_SERVICE_NAME);
-//    ServiceInstanceRegistration serviceInstanceRegistration = registrationBuilder.payload(
-//      new ZookeeperInstance(msIdToRegister + "", ENGINE_SERVICE_NAME, new HashMap<>())).build();
-//    serviceInstanceRegistration.getServiceInstance();
-//    serviceInstanceRegistration.getMetadata().put(ENGINE_CAPACITY_NAME, "0");//TODO set 0
-//    serviceDiscovery.updateService(serviceInstanceRegistration.getServiceInstance());
     msId = msIdToRegister;
     return msIdToRegister;
+  }
+
+  @Scheduled(cron = "0/4 * * * * *")
+  public void updateEngineCapacity() throws Exception {
+    ServiceInstanceRegistration registration = getServiceInstanceRegistration();
+    registration.getMetadata().put(ENGINE_CAPACITY_NAME, getCapacityStr());
+    serviceDiscovery.updateService(registration.getServiceInstance());
+  }
+
+  public String getCapacityStr() {
+    return Runtime.getRuntime().totalMemory() + CAPACITY_DELIMITER
+      + Runtime.getRuntime().freeMemory() + CAPACITY_DELIMITER
+      + getCryptoEngine().getAtoCount();
+  }
+
+  @Lookup
+  public ServiceInstanceRegistration getServiceInstanceRegistration() {
+    return null;
+  }
+
+  @Lookup
+  public CryptoEngine getCryptoEngine() {
+    return null;
   }
 
   public void terminateBot(int msId) {
